@@ -18,15 +18,12 @@ package apiserver
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/healthz"
-	"github.com/GoogleCloudPlatform/kubernetes/pkg/httplog"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/version"
 	"github.com/golang/glog"
 )
@@ -53,14 +50,17 @@ type defaultAPIServer struct {
 // Handle returns a Handler function that expose the provided storage interfaces
 // as RESTful resources at prefix, serialized by codec, and also includes the support
 // http resources.
-func Handle(storage map[string]RESTStorage, codec Codec, prefix string) http.Handler {
+func Handle(storage map[string]RESTStorage, codec Codec, prefix string, enableCORS bool) http.Handler {
 	group := NewAPIGroup(storage, codec)
 
 	mux := http.NewServeMux()
 	group.InstallREST(mux, prefix)
 	InstallSupport(mux)
-
-	return &defaultAPIServer{RecoverPanics(mux), group}
+	handler := RecoverPanics(mux)
+	if enableCORS {
+		handler = CORS(handler, []string{".*"}, nil, nil, "true")
+	}
+	return &defaultAPIServer{handler, group}
 }
 
 // APIGroup is a http.Handler that exposes multiple RESTStorage objects
@@ -114,31 +114,6 @@ func InstallSupport(mux mux) {
 	mux.Handle("/proxy/minion/", http.StripPrefix("/proxy/minion", http.HandlerFunc(handleProxyMinion)))
 	mux.HandleFunc("/version", handleVersion)
 	mux.HandleFunc("/", handleIndex)
-}
-
-// RecoverPanics wraps an http Handler to recover and log panics.
-func RecoverPanics(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		defer func() {
-			if x := recover(); x != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprint(w, "apis panic. Look in log for details.")
-				glog.Infof("APIServer panic'd on %v %v: %#v\n%s\n", req.Method, req.RequestURI, x, debug.Stack())
-			}
-		}()
-		defer httplog.NewLogged(req, &w).StacktraceWhen(
-			httplog.StatusIsNot(
-				http.StatusOK,
-				http.StatusAccepted,
-				http.StatusTemporaryRedirect,
-				http.StatusConflict,
-				http.StatusNotFound,
-			),
-		).Log()
-
-		// Dispatch to the internal handler
-		handler.ServeHTTP(w, req)
-	})
 }
 
 // handleVersion writes the server's version information.

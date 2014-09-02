@@ -38,6 +38,7 @@ var (
 	port                        = flag.Uint("port", 8080, "The port to listen on.  Default 8080.")
 	address                     = flag.String("address", "127.0.0.1", "The address on the local server to listen to. Default 127.0.0.1")
 	apiPrefix                   = flag.String("api_prefix", "/api/v1beta1", "The prefix for API requests on the server. Default '/api/v1beta1'")
+	enableCORS                  = flag.Bool("enable_cors", false, "If true, the basic CORS implementation will be enabled. [default false]")
 	cloudProvider               = flag.String("cloud_provider", "", "The provider for cloud services.  Empty string for no provider.")
 	minionRegexp                = flag.String("minion_regexp", "", "If non empty, and -cloud_provider is specified, a regular expression for matching minion VMs")
 	minionPort                  = flag.Uint("minion_port", 10250, "The port at which kubelet will be listening on the minions.")
@@ -111,7 +112,7 @@ func main() {
 	storage, codec := m.API_v1beta1()
 	s := &http.Server{
 		Addr:           net.JoinHostPort(*address, strconv.Itoa(int(*port))),
-		Handler:        apiserver.Handle(storage, codec, *apiPrefix),
+		Handler:        apiserver.Handle(storage, codec, *apiPrefix, *enableCORS),
 		ReadTimeout:    5 * time.Minute,
 		WriteTimeout:   5 * time.Minute,
 		MaxHeaderBytes: 1 << 20,
