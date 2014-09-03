@@ -50,17 +50,13 @@ type defaultAPIServer struct {
 // Handle returns a Handler function that expose the provided storage interfaces
 // as RESTful resources at prefix, serialized by codec, and also includes the support
 // http resources.
-func Handle(storage map[string]RESTStorage, codec Codec, prefix string, enableCORS bool) http.Handler {
+func Handle(storage map[string]RESTStorage, codec Codec, prefix string) http.Handler {
 	group := NewAPIGroup(storage, codec)
 
 	mux := http.NewServeMux()
 	group.InstallREST(mux, prefix)
 	InstallSupport(mux)
-	handler := RecoverPanics(mux)
-	if enableCORS {
-		handler = CORS(handler, []string{".*"}, nil, nil, "true")
-	}
-	return &defaultAPIServer{handler, group}
+	return &defaultAPIServer{RecoverPanics(mux), group}
 }
 
 // APIGroup is a http.Handler that exposes multiple RESTStorage objects

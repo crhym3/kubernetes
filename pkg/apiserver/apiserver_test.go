@@ -184,7 +184,7 @@ func TestNotFound(t *testing.T) {
 	}
 	handler := Handle(map[string]RESTStorage{
 		"foo": &SimpleRESTStorage{},
-	}, codec, "/prefix/version", false)
+	}, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 	client := http.Client{}
 	for k, v := range cases {
@@ -205,7 +205,7 @@ func TestNotFound(t *testing.T) {
 }
 
 func TestVersion(t *testing.T) {
-	handler := Handle(map[string]RESTStorage{}, codec, "/prefix/version", false)
+	handler := Handle(map[string]RESTStorage{}, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 	client := http.Client{}
 
@@ -234,7 +234,7 @@ func TestSimpleList(t *testing.T) {
 	storage := map[string]RESTStorage{}
 	simpleStorage := SimpleRESTStorage{}
 	storage["simple"] = &simpleStorage
-	handler := Handle(storage, codec, "/prefix/version", false)
+	handler := Handle(storage, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 
 	resp, err := http.Get(server.URL + "/prefix/version/simple")
@@ -253,7 +253,7 @@ func TestErrorList(t *testing.T) {
 		errors: map[string]error{"list": fmt.Errorf("test Error")},
 	}
 	storage["simple"] = &simpleStorage
-	handler := Handle(storage, codec, "/prefix/version", false)
+	handler := Handle(storage, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 
 	resp, err := http.Get(server.URL + "/prefix/version/simple")
@@ -277,7 +277,7 @@ func TestNonEmptyList(t *testing.T) {
 		},
 	}
 	storage["simple"] = &simpleStorage
-	handler := Handle(storage, codec, "/prefix/version", false)
+	handler := Handle(storage, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 
 	resp, err := http.Get(server.URL + "/prefix/version/simple")
@@ -312,7 +312,7 @@ func TestGet(t *testing.T) {
 		},
 	}
 	storage["simple"] = &simpleStorage
-	handler := Handle(storage, codec, "/prefix/version", false)
+	handler := Handle(storage, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 
 	resp, err := http.Get(server.URL + "/prefix/version/simple/id")
@@ -333,7 +333,7 @@ func TestGetMissing(t *testing.T) {
 		errors: map[string]error{"get": NewNotFoundErr("simple", "id")},
 	}
 	storage["simple"] = &simpleStorage
-	handler := Handle(storage, codec, "/prefix/version", false)
+	handler := Handle(storage, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 
 	resp, err := http.Get(server.URL + "/prefix/version/simple/id")
@@ -351,7 +351,7 @@ func TestDelete(t *testing.T) {
 	simpleStorage := SimpleRESTStorage{}
 	ID := "id"
 	storage["simple"] = &simpleStorage
-	handler := Handle(storage, codec, "/prefix/version", false)
+	handler := Handle(storage, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 
 	client := http.Client{}
@@ -373,7 +373,7 @@ func TestDeleteMissing(t *testing.T) {
 		errors: map[string]error{"delete": NewNotFoundErr("simple", ID)},
 	}
 	storage["simple"] = &simpleStorage
-	handler := Handle(storage, codec, "/prefix/version", false)
+	handler := Handle(storage, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 
 	client := http.Client{}
@@ -393,7 +393,7 @@ func TestUpdate(t *testing.T) {
 	simpleStorage := SimpleRESTStorage{}
 	ID := "id"
 	storage["simple"] = &simpleStorage
-	handler := Handle(storage, codec, "/prefix/version", false)
+	handler := Handle(storage, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 
 	item := Simple{
@@ -423,7 +423,7 @@ func TestUpdateMissing(t *testing.T) {
 		errors: map[string]error{"update": NewNotFoundErr("simple", ID)},
 	}
 	storage["simple"] = &simpleStorage
-	handler := Handle(storage, codec, "/prefix/version", false)
+	handler := Handle(storage, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 
 	item := Simple{
@@ -450,7 +450,7 @@ func TestCreate(t *testing.T) {
 	simpleStorage := &SimpleRESTStorage{}
 	handler := Handle(map[string]RESTStorage{
 		"foo": simpleStorage,
-	}, codec, "/prefix/version", false)
+	}, codec, "/prefix/version")
 	handler.(*defaultAPIServer).group.handler.asyncOpWait = 0
 	server := httptest.NewServer(handler)
 	client := http.Client{}
@@ -491,7 +491,7 @@ func TestCreateNotFound(t *testing.T) {
 			// See https://github.com/GoogleCloudPlatform/kubernetes/pull/486#discussion_r15037092.
 			errors: map[string]error{"create": NewNotFoundErr("simple", "id")},
 		},
-	}, codec, "/prefix/version", false)
+	}, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 	client := http.Client{}
 
@@ -533,7 +533,7 @@ func TestSyncCreate(t *testing.T) {
 	}
 	handler := Handle(map[string]RESTStorage{
 		"foo": &storage,
-	}, codec, "/prefix/version", false)
+	}, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 	client := http.Client{}
 
@@ -633,7 +633,7 @@ func TestAsyncDelayReturnsError(t *testing.T) {
 			return nil, NewAlreadyExistsErr("foo", "bar")
 		},
 	}
-	handler := Handle(map[string]RESTStorage{"foo": &storage}, codec, "/prefix/version", false)
+	handler := Handle(map[string]RESTStorage{"foo": &storage}, codec, "/prefix/version")
 	handler.(*defaultAPIServer).group.handler.asyncOpWait = time.Millisecond / 2
 	server := httptest.NewServer(handler)
 
@@ -651,7 +651,7 @@ func TestAsyncCreateError(t *testing.T) {
 			return nil, NewAlreadyExistsErr("foo", "bar")
 		},
 	}
-	handler := Handle(map[string]RESTStorage{"foo": &storage}, codec, "/prefix/version", false)
+	handler := Handle(map[string]RESTStorage{"foo": &storage}, codec, "/prefix/version")
 	handler.(*defaultAPIServer).group.handler.asyncOpWait = 0
 	server := httptest.NewServer(handler)
 
@@ -742,7 +742,7 @@ func TestSyncCreateTimeout(t *testing.T) {
 	}
 	handler := Handle(map[string]RESTStorage{
 		"foo": &storage,
-	}, codec, "/prefix/version", false)
+	}, codec, "/prefix/version")
 	server := httptest.NewServer(handler)
 
 	simple := Simple{Name: "foo"}
@@ -753,8 +753,8 @@ func TestSyncCreateTimeout(t *testing.T) {
 	}
 }
 
-func TestEnableCORS(t *testing.T) {
-	handler := Handle(map[string]RESTStorage{}, codec, "/prefix/version", true)
+func TestCORSAllowedOrigin(t *testing.T) {
+	handler := CORS(Handle(map[string]RESTStorage{}, codec, "/prefix/version"), []string{"example.com"}, nil, nil, "true")
 	server := httptest.NewServer(handler)
 	client := http.Client{}
 
@@ -783,5 +783,38 @@ func TestEnableCORS(t *testing.T) {
 
 	if response.Header.Get("Access-Control-Allow-Methods") == "" {
 		t.Errorf("Expected Access-Control-Allow-Methods header to be set")
+	}
+}
+
+func TestCORSUnallowedOrigin(t *testing.T) {
+	handler := CORS(Handle(map[string]RESTStorage{}, codec, "/prefix/version"), []string{"example.com"}, nil, nil, "true")
+	server := httptest.NewServer(handler)
+	client := http.Client{}
+
+	request, err := http.NewRequest("GET", server.URL+"/version", nil)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	request.Header.Set("Origin", "not-allowed.com")
+
+	response, err := client.Do(request)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if response.Header.Get("Access-Control-Allow-Origin") != "" {
+		t.Errorf("Expected Access-Control-Allow-Origin header to not be set")
+	}
+
+	if response.Header.Get("Access-Control-Allow-Credentials") != "" {
+		t.Errorf("Expected Access-Control-Allow-Credentials header to not be set")
+	}
+
+	if response.Header.Get("Access-Control-Allow-Headers") != "" {
+		t.Errorf("Expected Access-Control-Allow-Headers header to not be set")
+	}
+
+	if response.Header.Get("Access-Control-Allow-Methods") != "" {
+		t.Errorf("Expected Access-Control-Allow-Methods header to not be set")
 	}
 }
