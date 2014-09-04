@@ -56,7 +56,7 @@ func Handle(storage map[string]RESTStorage, codec Codec, prefix string) http.Han
 	mux := http.NewServeMux()
 	group.InstallREST(mux, prefix)
 	InstallSupport(mux)
-	return &defaultAPIServer{RecoverPanics(mux), group}
+	return &defaultAPIServer{mux, group}
 }
 
 // APIGroup is a http.Handler that exposes multiple RESTStorage objects
