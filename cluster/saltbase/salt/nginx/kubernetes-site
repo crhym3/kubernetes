@@ -43,8 +43,10 @@ server {
         ssl_prefer_server_ciphers on;
 
         location / {
-          auth_basic            "Restricted";
-          auth_basic_user_file  /usr/share/nginx/htpasswd;
+          limit_except OPTIONS {
+            auth_basic            "Restricted";
+            auth_basic_user_file  /usr/share/nginx/htpasswd;
+          }
 
           # Proxy settings
           proxy_pass http://127.0.0.1:8080/;
