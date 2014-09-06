@@ -11,6 +11,7 @@
 
 {% set minion_regexp = "-minion_regexp '" + pillar['instance_prefix'] + ".*'" %}
 {% set address = "-address 127.0.0.1" %}
+{% set cors = '-cors_allowed_origins=.*' %}
 
 {% if grains.etcd_servers is defined %}
   {% set etcd_servers = "-etcd_servers=http://" + grains.etcd_servers + ":4001" %}
@@ -52,4 +53,4 @@
 {% endif %}
 {% endif %}
 
-DAEMON_ARGS="{{daemon_args}} {{address}} {{machines}} {{etcd_servers}} {{ minion_regexp }} {{ cloud_provider }}"
+DAEMON_ARGS="{{daemon_args}} {{address}} {{cors}} {{machines}} {{etcd_servers}} {{ minion_regexp }} {{ cloud_provider }}"
